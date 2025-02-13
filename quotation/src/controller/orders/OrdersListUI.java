@@ -13,6 +13,8 @@ import dao.impl.CustomerDaoImpl;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class OrdersListUI extends JFrame {
@@ -24,9 +26,10 @@ public class OrdersListUI extends JFrame {
     private OrdersDao ordersDao;
     private OrderItemsDao orderItemsDao;
     private CustomerDao customerDao;
+    private Timer timer;
 
     public OrdersListUI() {
-        setTitle("訂單管理");
+        setTitleWithTime();
         setSize(800, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -76,8 +79,15 @@ public class OrdersListUI extends JFrame {
         btnDelete.addActionListener(e -> deleteOrder());
         searchField.addActionListener(e -> loadOrders());
         statusFilter.addActionListener(e -> loadOrders());
+
+        // 設定計時器，每秒更新標題時間
+        timer = new Timer(1000, e -> setTitleWithTime());
+        timer.start();
     }
 
+    /**
+     * 讀取訂單資料並更新表格
+     */
     private void loadOrders() {
         tableModel.setRowCount(0);
         List<Orders> ordersList = ordersDao.getAllOrders();
@@ -100,6 +110,9 @@ public class OrdersListUI extends JFrame {
         }
     }
 
+    /**
+     * 顯示訂單詳情
+     */
     private void viewOrderDetails() {
         int selectedRow = ordersTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -131,6 +144,9 @@ public class OrdersListUI extends JFrame {
         JOptionPane.showMessageDialog(this, details.toString(), "訂單詳情", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * 修改訂單狀態
+     */
     private void editOrderStatus() {
         int selectedRow = ordersTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -142,7 +158,7 @@ public class OrdersListUI extends JFrame {
         String[] statusOptions = {"Pending", "Completed", "Canceled"};
         String newStatus = (String) JOptionPane.showInputDialog(this, "選擇新的狀態:", "修改狀態",
                 JOptionPane.QUESTION_MESSAGE, null, statusOptions, statusOptions[0]);
-        
+
         if (newStatus != null) {
             Orders order = ordersDao.getOrderById(orderId);
             if (order != null) {
@@ -154,6 +170,9 @@ public class OrdersListUI extends JFrame {
         }
     }
 
+    /**
+     * 刪除訂單
+     */
     private void deleteOrder() {
         int selectedRow = ordersTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -168,6 +187,14 @@ public class OrdersListUI extends JFrame {
             loadOrders();
             JOptionPane.showMessageDialog(this, "訂單已刪除!");
         }
+    }
+
+    /**
+     * 設定視窗標題，包含系統時間
+     */
+    private void setTitleWithTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        setTitle("訂單管理 - " + sdf.format(new Date()));
     }
 
     public static void main(String[] args) {
